@@ -8,9 +8,12 @@ const logger = require('../utils/logger');
 let io = null;
 
 function initSocket(server) {
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  const cleanClientUrl = clientUrl.endsWith('/') ? clientUrl.slice(0, -1) : clientUrl;
+
   io = new Server(server, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:5173',
+      origin: [cleanClientUrl, 'http://localhost:5173'],
       methods: ['GET', 'POST'],
       credentials: true,
     },
