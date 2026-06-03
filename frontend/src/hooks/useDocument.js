@@ -109,6 +109,8 @@ export default function useDocument(documentId) {
     };
   }, [documentId, isConnected]);
 
+  const autosaveTimeoutRef = useRef(null);
+
   // ─── Emit text changes + typing indicator ──────────────
   const updateContent = useCallback((newContent) => {
     setDocument((prev) => (prev ? { ...prev, content: newContent } : null));
@@ -128,6 +130,18 @@ export default function useDocument(documentId) {
           socketRef.current.emit(SOCKET_EVENTS.TYPING, { documentId, isTyping: false });
         }
       }, 1500);
+    } else {
+      // Fallback: Debounced REST API auto-save if socket disconnected
+      if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current);
+      autosaveTimeoutRef.current = setTimeout(async () => {
+        try {
+          await docApi.updateDocument(documentId, { content: newContent });
+          setIsSaving(false);
+        } catch (err) {
+          console.error('REST auto-save failed:', err);
+          setIsSaving(false);
+        }
+      }, 2000);
     }
   }, [documentId, isConnected]);
 
@@ -138,6 +152,7 @@ export default function useDocument(documentId) {
     return () => {
       if (updateTitleTimeoutRef.current) clearTimeout(updateTitleTimeoutRef.current);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (autosaveTimeoutRef.current) clearTimeout(autosaveTimeoutRef.current);
     };
   }, []);
 
@@ -156,12 +171,25 @@ export default function useDocument(documentId) {
   }, [documentId]);
 
   // ─── Manual save trigger ───────────────────────────────
-  const saveDocument = useCallback(() => {
-    if (socketRef.current && isConnected && document) {
+  const saveDocument = useCallback(async () => {
+    if (!document) return;
+    setIsSaving(true);
+    if (socketRef.current && isConnected) {
       socketRef.current.emit(SOCKET_EVENTS.SAVE_DOCUMENT, {
         documentId,
         content: document.content,
       });
+    } else {
+      // Fallback: Manual Save via REST API
+      try {
+        await docApi.updateDocument(documentId, { content: document.content });
+        toast.success('Document saved successfully');
+      } catch (err) {
+        toast.error('Failed to save document');
+        console.error(err);
+      } finally {
+        setIsSaving(false);
+      }
     }
   }, [documentId, isConnected, document]);
 

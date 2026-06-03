@@ -114,7 +114,7 @@ export default function EditorPage() {
       </div>
 
       {/* Rich text formatting toolbar */}
-      <Toolbar editor={editor} isSaving={isSaving} onExport={handleExport} />
+      <Toolbar editor={editor} isSaving={isSaving} onSave={saveDocument} onExport={handleExport} />
 
       {/* Tiptap editor */}
       <Editor

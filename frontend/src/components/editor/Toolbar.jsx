@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Bold, Italic, Strikethrough, Code, List, ListOrdered,
-  Heading1, Heading2, Quote, Undo, Redo, Minus, Download,
+  Heading1, Heading2, Quote, Undo, Redo, Minus, Download, Save,
   AlignLeft, AlignCenter, AlignRight, AlignJustify, Palette,
 } from 'lucide-react';
 
@@ -113,7 +113,7 @@ function ColorPicker({ editor }) {
   );
 }
 
-export default function Toolbar({ editor, isSaving, onExport }) {
+export default function Toolbar({ editor, isSaving, onSave, onExport }) {
   if (!editor) return null;
 
   return (
@@ -232,6 +232,15 @@ export default function Toolbar({ editor, isSaving, onExport }) {
         >
           <Download size={14} />
           Export
+        </button>
+
+        <button
+          onClick={onSave}
+          className="p-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold"
+          title="Save to database"
+        >
+          <Save size={14} />
+          Save
         </button>
       </div>
     </div>
