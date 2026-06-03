@@ -4,6 +4,17 @@ import {
   Heading1, Heading2, Quote, Undo, Redo, Save, Minus,
 } from 'lucide-react';
 
+const FONT_SIZES = [
+  { label: '12px', value: '12px' },
+  { label: '14px', value: '14px' },
+  { label: '16px', value: '16px' },
+  { label: '18px', value: '18px' },
+  { label: '20px', value: '20px' },
+  { label: '24px', value: '24px' },
+  { label: '30px', value: '30px' },
+  { label: '36px', value: '36px' },
+];
+
 function ToolbarButton({ onClick, isActive, disabled, children, title }) {
   return (
     <button
@@ -25,7 +36,7 @@ export default function Toolbar({ editor, isSaving, onSave }) {
   if (!editor) return null;
 
   return (
-    <div className="bg-dark-800 border-b border-dark-700 h-12 flex items-center justify-between px-4 overflow-x-auto">
+    <div className="bg-dark-800 border-b border-dark-700 h-12 flex items-center justify-between px-4 overflow-x-auto transition-colors duration-200">
       <div className="flex items-center gap-0.5">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -55,6 +66,29 @@ export default function Toolbar({ editor, isSaving, onSave }) {
         >
           <Code size={16} />
         </ToolbarButton>
+
+        <div className="w-px h-5 bg-dark-700 mx-1.5" />
+
+        {/* Font Size Select Dropdown */}
+        <select
+          value={editor.getAttributes('fontSize').size || '14px'}
+          onChange={(e) => {
+            const size = e.target.value;
+            if (size === '14px') {
+              editor.chain().focus().unsetFontSize().run();
+            } else {
+              editor.chain().focus().setFontSize(size).run();
+            }
+          }}
+          className="bg-dark-700 border border-dark-600/80 rounded-lg text-xs text-dark-200 hover:text-dark-100 px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-primary-500 max-w-[85px] transition-colors duration-200"
+          title="Font Size"
+        >
+          {FONT_SIZES.map((size) => (
+            <option key={size.value} value={size.value} className="bg-dark-800 text-dark-200">
+              {size.label}
+            </option>
+          ))}
+        </select>
 
         <div className="w-px h-5 bg-dark-700 mx-1.5" />
 

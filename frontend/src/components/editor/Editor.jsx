@@ -1,7 +1,55 @@
 import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { Mark } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import CursorOverlay from './CursorOverlay';
+
+// Custom Tiptap mark for inline font sizes without requiring heavy dependencies
+const FontSizeMark = Mark.create({
+  name: 'fontSize',
+  addAttributes() {
+    return {
+      size: {
+        default: null,
+        parseHTML: (element) => element.style.fontSize,
+        renderHTML: (attributes) => {
+          if (!attributes.size) {
+            return {};
+          }
+          return { style: `font-size: ${attributes.size}` };
+        },
+      },
+    };
+  },
+  parseHTML() {
+    return [
+      {
+        tag: 'span',
+        getAttrs: (element) => {
+          const hasFontSize = element.style.fontSize;
+          return hasFontSize ? {} : false;
+        },
+      },
+    ];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['span', HTMLAttributes, 0];
+  },
+  addCommands() {
+    return {
+      setFontSize: (size) => ({ chain }) => {
+        return chain()
+          .setMark(this.name, { size })
+          .run();
+      },
+      unsetFontSize: () => ({ chain }) => {
+        return chain()
+          .unsetMark(this.name)
+          .run();
+      },
+    };
+  },
+});
 
 const Editor = forwardRef(function Editor({ value, onChange, onCursorMove, remoteCursors }, ref) {
   const isRemoteUpdate = useRef(false);
@@ -13,6 +61,7 @@ const Editor = forwardRef(function Editor({ value, onChange, onCursorMove, remot
           depth: 100,
         },
       }),
+      FontSizeMark,
     ],
     content: value || '',
     editorProps: {
@@ -71,3 +120,4 @@ const Editor = forwardRef(function Editor({ value, onChange, onCursorMove, remot
 });
 
 export default Editor;
+export { FontSizeMark };
