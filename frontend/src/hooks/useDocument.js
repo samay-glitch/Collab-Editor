@@ -51,8 +51,11 @@ export default function useDocument(documentId) {
     });
 
     // Document was auto-saved to DB
-    socket.on(SOCKET_EVENTS.DOCUMENT_SAVED, () => {
+    socket.on(SOCKET_EVENTS.DOCUMENT_SAVED, ({ lastEditedBy, updatedAt }) => {
       setIsSaving(false);
+      if (lastEditedBy && updatedAt) {
+        setDocument((prev) => (prev ? { ...prev, lastEditedBy, updatedAt } : null));
+      }
     });
 
     // Full list of currently active users

@@ -5,7 +5,7 @@ import RegisterForm from '../components/auth/RegisterForm';
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen bg-dark-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-dark-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <div className="inline-flex bg-primary-600 text-white p-3 rounded-2xl shadow-lg mb-4">
           <FileText size={32} />

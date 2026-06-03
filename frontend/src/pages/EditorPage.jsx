@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useParams, useOutletContext } from 'react-router-dom';
 import useDocument from '../hooks/useDocument';
 import useCursorPresence from '../hooks/useCursorPresence';
@@ -11,8 +11,9 @@ import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import Input from '../components/common/Input';
 import toast from 'react-hot-toast';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Clock } from 'lucide-react';
 import * as docApi from '../api/documentApi';
+import { formatRelativeTime } from '../utils/formatDate';
 
 export default function EditorPage() {
   const { id } = useParams();
@@ -81,11 +82,13 @@ export default function EditorPage() {
     );
   }
 
+  const lastEditor = document.lastEditedBy;
+
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-dark-950/10">
+    <div className="flex flex-col h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)] bg-dark-950/10">
       {/* Title bar with presence */}
-      <div className="h-14 bg-dark-900 border-b border-dark-700 flex items-center justify-between px-6">
-        <div className="flex items-center gap-4 flex-1 max-w-md">
+      <div className="min-h-[3rem] md:min-h-[3.5rem] bg-dark-900 border-b border-dark-700 flex flex-col sm:flex-row sm:items-center sm:justify-between px-3 md:px-6 py-2 sm:py-0 gap-1 sm:gap-0">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           <input
             type="text"
             value={document.title}
@@ -96,19 +99,35 @@ export default function EditorPage() {
                 updateLocalDocumentTitle(id, newTitle);
               }
             }}
-            className="bg-transparent hover:bg-dark-800/60 focus:bg-dark-800 text-sm font-bold text-dark-100 rounded-lg px-2.5 py-1.5 focus:outline-none transition-all duration-200 truncate flex-1 border border-transparent focus:border-dark-600"
+            className="bg-transparent hover:bg-dark-800/60 focus:bg-dark-800 text-sm font-bold text-dark-100 rounded-lg px-2 py-1 md:px-2.5 md:py-1.5 focus:outline-none transition-all duration-200 truncate flex-1 min-w-0 border border-transparent focus:border-dark-600"
           />
+
+          {/* Last edited by indicator */}
+          {lastEditor && (
+            <span className="hidden lg:flex items-center gap-1.5 text-[10px] text-dark-500 whitespace-nowrap shrink-0">
+              <Clock size={10} />
+              Edited by {lastEditor.name} • {formatRelativeTime(document.updatedAt)}
+            </span>
+          )}
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 md:gap-6 shrink-0">
+          {/* Last edited - mobile (below title) */}
+          {lastEditor && (
+            <span className="lg:hidden flex items-center gap-1 text-[10px] text-dark-500 whitespace-nowrap">
+              <Clock size={10} />
+              {lastEditor.name} • {formatRelativeTime(document.updatedAt)}
+            </span>
+          )}
+
           <PresenceBar users={activeUsers} />
           <Button
             variant="secondary"
             onClick={() => setIsShareOpen(true)}
-            className="flex items-center gap-2 text-xs py-1.5 px-3.5"
+            className="flex items-center gap-1.5 text-xs py-1.5 px-2.5 md:px-3.5"
           >
             <UserPlus size={14} />
-            Share
+            <span className="hidden sm:inline">Share</span>
           </Button>
         </div>
       </div>

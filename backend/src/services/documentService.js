@@ -18,7 +18,8 @@ const getDocumentsByUser = async (userId) => {
 const getDocumentById = async (docId, userId) => {
   const doc = await Document.findById(docId)
     .populate('owner', 'name email avatar')
-    .populate('collaborators', 'name email avatar');
+    .populate('collaborators', 'name email avatar')
+    .populate('lastEditedBy', 'name email avatar');
 
   if (!doc) {
     throw ApiError.notFound('Document not found');
@@ -50,7 +51,9 @@ const updateDocument = async (docId, updateData, userId) => {
   doc.lastEditedBy = userId;
   doc.version += 1;
 
-  return doc.save();
+  const savedDoc = await doc.save();
+  await savedDoc.populate('lastEditedBy', 'name email avatar');
+  return savedDoc;
 };
 
 const deleteDocument = async (docId, userId) => {

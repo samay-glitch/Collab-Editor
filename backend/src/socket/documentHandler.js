@@ -86,8 +86,12 @@ module.exports = function (io, socket) {
 
     saveDebounces[documentId] = setTimeout(async () => {
       try {
-        await documentService.updateDocument(documentId, { content }, socket.user._id);
-        io.to(documentId).emit(SOCKET_EVENTS.DOCUMENT_SAVED, { version: Date.now() });
+        const savedDoc = await documentService.updateDocument(documentId, { content }, socket.user._id);
+        io.to(documentId).emit(SOCKET_EVENTS.DOCUMENT_SAVED, {
+          version: savedDoc.version,
+          lastEditedBy: savedDoc.lastEditedBy,
+          updatedAt: savedDoc.updatedAt,
+        });
         logger.debug(`Auto-saved document: ${documentId}`);
         delete saveDebounces[documentId];
       } catch (err) {
@@ -114,8 +118,12 @@ module.exports = function (io, socket) {
         clearTimeout(saveDebounces[documentId]);
         delete saveDebounces[documentId];
       }
-      await documentService.updateDocument(documentId, { content }, socket.user._id);
-      io.to(documentId).emit(SOCKET_EVENTS.DOCUMENT_SAVED, { version: Date.now() });
+      const savedDoc = await documentService.updateDocument(documentId, { content }, socket.user._id);
+      io.to(documentId).emit(SOCKET_EVENTS.DOCUMENT_SAVED, {
+        version: savedDoc.version,
+        lastEditedBy: savedDoc.lastEditedBy,
+        updatedAt: savedDoc.updatedAt,
+      });
       logger.info(`Manual save successful for document: ${documentId}`);
     } catch (err) {
       logger.error(`Manual save error: ${err.message}`);
