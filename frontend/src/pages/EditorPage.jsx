@@ -34,6 +34,20 @@ export default function EditorPage() {
   const [collaboratorEmail, setCollaboratorEmail] = useState('');
   const [isInviting, setIsInviting] = useState(false);
 
+  const handleExport = () => {
+    if (!document) return;
+    const blob = new Blob([document.content], { type: 'text/html;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = window.document.createElement('a');
+    link.href = url;
+    const filename = `${document.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
+    link.setAttribute('download', filename);
+    window.document.body.appendChild(link);
+    link.click();
+    window.document.body.removeChild(link);
+    toast.success('Document downloaded to your computer');
+  };
+
   const handleShare = async (e) => {
     e.preventDefault();
     if (!collaboratorEmail) return;
@@ -100,7 +114,7 @@ export default function EditorPage() {
       </div>
 
       {/* Rich text formatting toolbar */}
-      <Toolbar editor={editorRef.current} isSaving={isSaving} onSave={saveDocument} />
+      <Toolbar editor={editorRef.current} isSaving={isSaving} onSave={saveDocument} onExport={handleExport} />
 
       {/* Tiptap editor */}
       <Editor

@@ -1,7 +1,6 @@
-import React from 'react';
 import {
   Bold, Italic, Strikethrough, Code, List, ListOrdered,
-  Heading1, Heading2, Quote, Undo, Redo, Save, Minus,
+  Heading1, Heading2, Quote, Undo, Redo, Save, Minus, Download,
 } from 'lucide-react';
 
 const FONT_SIZES = [
@@ -32,7 +31,7 @@ function ToolbarButton({ onClick, isActive, disabled, children, title }) {
   );
 }
 
-export default function Toolbar({ editor, isSaving, onSave }) {
+export default function Toolbar({ editor, isSaving, onSave, onExport }) {
   if (!editor) return null;
 
   return (
@@ -155,7 +154,7 @@ export default function Toolbar({ editor, isSaving, onSave }) {
         </ToolbarButton>
       </div>
 
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center gap-2.5 shrink-0">
         {isSaving ? (
           <span className="text-xs text-dark-400 flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full animate-pulse" />
@@ -169,8 +168,18 @@ export default function Toolbar({ editor, isSaving, onSave }) {
         )}
 
         <button
-          onClick={onSave}
+          onClick={onExport}
           className="p-2 bg-dark-700 hover:bg-dark-600 text-dark-200 hover:text-dark-100 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold border border-dark-600"
+          title="Download Document as HTML"
+        >
+          <Download size={14} />
+          Export
+        </button>
+
+        <button
+          onClick={onSave}
+          className="p-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg transition-colors flex items-center gap-1.5 text-xs font-semibold"
+          title="Save to database"
         >
           <Save size={14} />
           Save
