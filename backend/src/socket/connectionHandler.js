@@ -16,7 +16,7 @@ module.exports = function (io, socket) {
     
     if (socket.currentRoom) {
       socket.to(socket.currentRoom).emit(SOCKET_EVENTS.USER_LEFT, {
-        userId: socket.user._id,
+        userId: socket.user._id.toString(),
         userName: socket.user.name,
       });
     }

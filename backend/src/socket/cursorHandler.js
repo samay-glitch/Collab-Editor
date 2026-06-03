@@ -5,7 +5,7 @@ module.exports = function (io, socket) {
     if (!documentId) return;
 
     socket.to(documentId).emit(SOCKET_EVENTS.CURSOR_UPDATE, {
-      userId: socket.user._id,
+      userId: socket.user._id.toString(),
       userName: socket.user.name,
       position,
       color,

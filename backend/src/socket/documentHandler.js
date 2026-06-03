@@ -15,7 +15,7 @@ module.exports = function (io, socket) {
       if (socket.currentRoom && socket.currentRoom !== documentId) {
         socket.leave(socket.currentRoom);
         socket.to(socket.currentRoom).emit(SOCKET_EVENTS.USER_LEFT, {
-          userId: socket.user._id,
+          userId: socket.user._id.toString(),
           userName: socket.user.name,
         });
       }
@@ -30,7 +30,7 @@ module.exports = function (io, socket) {
 
       // Notify others in room of user join
       socket.to(documentId).emit(SOCKET_EVENTS.USER_JOINED, {
-        userId: socket.user._id,
+        userId: socket.user._id.toString(),
         userName: socket.user.name,
         avatar: socket.user.avatar,
       });
@@ -38,18 +38,35 @@ module.exports = function (io, socket) {
       // Get list of active collaborators in this room
       const clients = io.sockets.adapter.rooms.get(documentId);
       const activeUsers = [];
+      let currentUserFound = false;
+
       if (clients) {
         for (const clientId of clients) {
           const clientSocket = io.sockets.sockets.get(clientId);
           if (clientSocket && clientSocket.user) {
-            activeUsers.push({
-              userId: clientSocket.user._id,
-              userName: clientSocket.user.name,
-              avatar: clientSocket.user.avatar,
-            });
+            const isCurrentUser = clientSocket.user._id.toString() === socket.user._id.toString();
+            if (isCurrentUser) {
+              currentUserFound = true;
+            }
+            if (!activeUsers.some((u) => u.userId === clientSocket.user._id.toString())) {
+              activeUsers.push({
+                userId: clientSocket.user._id.toString(),
+                userName: clientSocket.user.name,
+                avatar: clientSocket.user.avatar,
+              });
+            }
           }
         }
       }
+
+      if (!currentUserFound) {
+        activeUsers.push({
+          userId: socket.user._id.toString(),
+          userName: socket.user.name,
+          avatar: socket.user.avatar,
+        });
+      }
+
       socket.emit(SOCKET_EVENTS.PRESENCE_LIST, activeUsers);
 
     } catch (err) {
@@ -113,7 +130,7 @@ module.exports = function (io, socket) {
     }
     logger.info(`User ${socket.user.name} left document room: ${documentId}`);
     socket.to(documentId).emit(SOCKET_EVENTS.USER_LEFT, {
-      userId: socket.user._id,
+      userId: socket.user._id.toString(),
       userName: socket.user.name,
     });
   });

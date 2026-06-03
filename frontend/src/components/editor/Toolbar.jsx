@@ -117,7 +117,7 @@ export default function Toolbar({ editor, isSaving, onExport }) {
   if (!editor) return null;
 
   return (
-    <div className="bg-dark-800 border-b border-dark-700 h-12 flex items-center justify-between px-4 overflow-x-auto transition-colors duration-200">
+    <div className="bg-dark-800 border-b border-dark-700 min-h-12 py-1.5 md:py-0 flex flex-wrap md:flex-nowrap items-center justify-between px-4 gap-2 transition-colors duration-200 relative z-30">
       <div className="flex items-center gap-0.5">
         {/* Font Size */}
         <select
