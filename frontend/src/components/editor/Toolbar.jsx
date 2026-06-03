@@ -38,7 +38,7 @@ function ToolbarButton({ onClick, isActive, disabled, children, title }) {
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`p-2 rounded-lg transition-colors ${
+      className={`p-2 rounded-lg transition-colors shrink-0 ${
         isActive
           ? 'bg-primary-600/20 text-primary-400'
           : 'text-dark-400 hover:text-dark-100 hover:bg-dark-700'
@@ -66,11 +66,11 @@ function ColorPicker({ editor }) {
   const currentColor = editor.getAttributes('textStyle').color || '';
 
   return (
-    <div className="relative" ref={popoverRef}>
+    <div className="relative shrink-0" ref={popoverRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         title="Text Color"
-        className="p-2 rounded-lg text-dark-400 hover:text-dark-100 hover:bg-dark-700 transition-colors flex items-center gap-1"
+        className="p-2 rounded-lg text-dark-400 hover:text-dark-100 hover:bg-dark-700 transition-colors flex items-center gap-1 shrink-0"
       >
         <Palette size={16} />
         <span
@@ -117,8 +117,8 @@ export default function Toolbar({ editor, isSaving, onSave, onExport }) {
   if (!editor) return null;
 
   return (
-    <div className="bg-dark-800 border-b border-dark-700 min-h-12 py-1.5 md:py-0 flex flex-wrap md:flex-nowrap items-center justify-between px-4 gap-2 transition-colors duration-200 relative z-30">
-      <div className="flex items-center gap-0.5">
+    <div className="bg-dark-800 border-b border-dark-700 min-h-12 py-1.5 md:py-0 flex flex-wrap md:flex-nowrap items-center justify-between px-4 gap-2 transition-colors duration-200 relative z-30 max-w-full overflow-hidden">
+      <div className="flex items-center gap-0.5 overflow-x-auto max-w-full scrollbar-none py-1 flex-1 min-w-0">
         {/* Font Size */}
         <select
           value={editor.getAttributes('fontSize').size || '14px'}
@@ -130,7 +130,7 @@ export default function Toolbar({ editor, isSaving, onSave, onExport }) {
               editor.chain().focus().setFontSize(size).run();
             }
           }}
-          className="bg-dark-700 border border-dark-600/80 rounded-lg text-xs text-dark-200 hover:text-dark-100 px-2 py-1.5 outline-none cursor-pointer focus:ring-1 focus:ring-primary-500 w-[72px] transition-colors duration-200"
+          className="bg-dark-700 border border-dark-600/80 rounded-lg text-xs text-dark-200 hover:text-dark-100 px-2 py-1.5 outline-none cursor-pointer focus:ring-1 focus:ring-primary-500 w-[72px] transition-colors duration-200 shrink-0"
           title="Font Size"
         >
           {FONT_SIZES.map((size) => (
@@ -140,7 +140,7 @@ export default function Toolbar({ editor, isSaving, onSave, onExport }) {
           ))}
         </select>
 
-        <div className="w-px h-5 bg-dark-700 mx-1" />
+        <div className="w-px h-5 bg-dark-700 mx-1 shrink-0" />
 
         {/* Bold / Italic / Strike / Code */}
         <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')} title="Bold">
@@ -159,7 +159,7 @@ export default function Toolbar({ editor, isSaving, onSave, onExport }) {
         {/* Text Color */}
         <ColorPicker editor={editor} />
 
-        <div className="w-px h-5 bg-dark-700 mx-1" />
+        <div className="w-px h-5 bg-dark-700 mx-1 shrink-0" />
 
         {/* Headings */}
         <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} isActive={editor.isActive('heading', { level: 1 })} title="Heading 1">
@@ -169,7 +169,7 @@ export default function Toolbar({ editor, isSaving, onSave, onExport }) {
           <Heading2 size={16} />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-dark-700 mx-1" />
+        <div className="w-px h-5 bg-dark-700 mx-1 shrink-0" />
 
         {/* Text Alignment */}
         <ToolbarButton onClick={() => editor.chain().focus().setTextAlign('left').run()} isActive={editor.isActive({ textAlign: 'left' })} title="Align Left">
@@ -185,7 +185,7 @@ export default function Toolbar({ editor, isSaving, onSave, onExport }) {
           <AlignJustify size={16} />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-dark-700 mx-1" />
+        <div className="w-px h-5 bg-dark-700 mx-1 shrink-0" />
 
         {/* Lists / Blockquote / HR */}
         <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} isActive={editor.isActive('bulletList')} title="Bullet List">
@@ -201,7 +201,7 @@ export default function Toolbar({ editor, isSaving, onSave, onExport }) {
           <Minus size={16} />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-dark-700 mx-1" />
+        <div className="w-px h-5 bg-dark-700 mx-1 shrink-0" />
 
         {/* Undo / Redo */}
         <ToolbarButton onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} title="Undo">

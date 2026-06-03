@@ -80,17 +80,9 @@ const Editor = forwardRef(function Editor({ value, onChange, onCursorMove, remot
     onSelectionUpdate: ({ editor }) => {
       if (!onCursorMove) return;
       const { from } = editor.state.selection;
-      const coords = editor.view.coordsAtPos(from);
-      
-      const container = editor.view.dom.closest('.overflow-y-auto');
-      if (container) {
-        const containerRect = container.getBoundingClientRect();
-        onCursorMove({
-          top: coords.top - containerRect.top + container.scrollTop,
-          left: coords.left - containerRect.left + container.scrollLeft,
-          index: from,
-        });
-      }
+      onCursorMove({
+        index: from,
+      });
     },
   });
 
@@ -116,7 +108,7 @@ const Editor = forwardRef(function Editor({ value, onChange, onCursorMove, remot
     <div className="relative flex-1 flex flex-col p-4 md:p-6 overflow-hidden">
       <div className="relative flex-1 max-w-4xl w-full mx-auto bg-dark-800/20 border border-dark-700/60 rounded-xl flex flex-col shadow-inner min-h-[500px]">
         <div className="relative flex-1 p-4 md:p-6 overflow-y-auto">
-          <CursorOverlay remoteCursors={remoteCursors} />
+          <CursorOverlay editor={editor} remoteCursors={remoteCursors} />
           <EditorContent editor={editor} />
         </div>
       </div>
