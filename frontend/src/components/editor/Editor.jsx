@@ -2,9 +2,12 @@ import React, { useEffect, useRef, forwardRef, useImperativeHandle } from 'react
 import { useEditor, EditorContent } from '@tiptap/react';
 import { Mark } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
+import TextStyle from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import TextAlign from '@tiptap/extension-text-align';
 import CursorOverlay from './CursorOverlay';
 
-// Custom Tiptap mark for inline font sizes without requiring heavy dependencies
+// Custom Tiptap mark for inline font sizes
 const FontSizeMark = Mark.create({
   name: 'fontSize',
   addAttributes() {
@@ -13,9 +16,7 @@ const FontSizeMark = Mark.create({
         default: null,
         parseHTML: (element) => element.style.fontSize,
         renderHTML: (attributes) => {
-          if (!attributes.size) {
-            return {};
-          }
+          if (!attributes.size) return {};
           return { style: `font-size: ${attributes.size}` };
         },
       },
@@ -38,36 +39,38 @@ const FontSizeMark = Mark.create({
   addCommands() {
     return {
       setFontSize: (size) => ({ chain }) => {
-        return chain()
-          .setMark(this.name, { size })
-          .run();
+        return chain().setMark(this.name, { size }).run();
       },
       unsetFontSize: () => ({ chain }) => {
-        return chain()
-          .unsetMark(this.name)
-          .run();
+        return chain().unsetMark(this.name).run();
       },
     };
   },
 });
 
-const Editor = forwardRef(function Editor({ value, onChange, onCursorMove, remoteCursors }, ref) {
+const Editor = forwardRef(function Editor({ value, onChange, onCursorMove, remoteCursors, onReady }, ref) {
   const isRemoteUpdate = useRef(false);
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        history: {
-          depth: 100,
-        },
+        history: { depth: 100 },
       }),
+      TextStyle,
+      Color,
       FontSizeMark,
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      }),
     ],
     content: value || '',
     editorProps: {
       attributes: {
         class: 'prose prose-invert max-w-none min-h-[460px] outline-none px-2 py-1 text-dark-100 text-sm leading-relaxed focus:outline-none',
       },
+    },
+    onCreate: ({ editor }) => {
+      if (onReady) onReady(editor);
     },
     onUpdate: ({ editor }) => {
       if (isRemoteUpdate.current) return;
@@ -79,7 +82,6 @@ const Editor = forwardRef(function Editor({ value, onChange, onCursorMove, remot
       const { from } = editor.state.selection;
       const coords = editor.view.coordsAtPos(from);
       const editorRect = editor.view.dom.getBoundingClientRect();
-
       onCursorMove({
         top: coords.top - editorRect.top,
         left: coords.left - editorRect.left,
@@ -91,7 +93,7 @@ const Editor = forwardRef(function Editor({ value, onChange, onCursorMove, remot
   // Expose editor instance to parent via ref
   useImperativeHandle(ref, () => editor, [editor]);
 
-  // Sync remote content changes into the editor without resetting cursor
+  // Sync remote content changes without resetting cursor
   useEffect(() => {
     if (!editor || !value) return;
     const currentHTML = editor.getHTML();
@@ -99,7 +101,6 @@ const Editor = forwardRef(function Editor({ value, onChange, onCursorMove, remot
       isRemoteUpdate.current = true;
       const { from } = editor.state.selection;
       editor.commands.setContent(value, false);
-      // Try to restore cursor position
       const docLength = editor.state.doc.content.size;
       const safePos = Math.min(from, docLength);
       editor.commands.setTextSelection(safePos);
@@ -120,4 +121,3 @@ const Editor = forwardRef(function Editor({ value, onChange, onCursorMove, remot
 });
 
 export default Editor;
-export { FontSizeMark };

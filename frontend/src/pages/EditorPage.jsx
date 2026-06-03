@@ -29,7 +29,7 @@ export default function EditorPage() {
   } = useDocument(id);
 
   const { remoteCursors, broadcastCursor } = useCursorPresence(id);
-  const editorRef = useRef(null);
+  const [editor, setEditor] = useState(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [collaboratorEmail, setCollaboratorEmail] = useState('');
   const [isInviting, setIsInviting] = useState(false);
@@ -114,11 +114,11 @@ export default function EditorPage() {
       </div>
 
       {/* Rich text formatting toolbar */}
-      <Toolbar editor={editorRef.current} isSaving={isSaving} onSave={saveDocument} onExport={handleExport} />
+      <Toolbar editor={editor} isSaving={isSaving} onSave={saveDocument} onExport={handleExport} />
 
       {/* Tiptap editor */}
       <Editor
-        ref={editorRef}
+        onReady={setEditor}
         value={document.content}
         onChange={updateContent}
         onCursorMove={broadcastCursor}
