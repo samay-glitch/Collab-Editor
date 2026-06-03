@@ -81,12 +81,16 @@ const Editor = forwardRef(function Editor({ value, onChange, onCursorMove, remot
       if (!onCursorMove) return;
       const { from } = editor.state.selection;
       const coords = editor.view.coordsAtPos(from);
-      const editorRect = editor.view.dom.getBoundingClientRect();
-      onCursorMove({
-        top: coords.top - editorRect.top,
-        left: coords.left - editorRect.left,
-        index: from,
-      });
+      
+      const container = editor.view.dom.closest('.overflow-y-auto');
+      if (container) {
+        const containerRect = container.getBoundingClientRect();
+        onCursorMove({
+          top: coords.top - containerRect.top + container.scrollTop,
+          left: coords.left - containerRect.left + container.scrollLeft,
+          index: from,
+        });
+      }
     },
   });
 
