@@ -11,12 +11,7 @@ export default function useDocument(documentId) {
   const [activeUsers, setActiveUsers] = useState([]);
   const [typingUsers, setTypingUsers] = useState([]);
   const { socket, isConnected } = useSocket();
-  const socketRef = useRef(socket);
   const typingTimeoutRef = useRef(null);
-
-  useEffect(() => {
-    socketRef.current = socket;
-  }, [socket]);
 
   // ─── Fetch document via REST on mount ──────────────────
   useEffect(() => {
@@ -40,34 +35,33 @@ export default function useDocument(documentId) {
 
   // ─── Socket.IO real-time listeners ─────────────────────
   useEffect(() => {
-    const currentSocket = socketRef.current;
-    if (!currentSocket || !isConnected || !documentId) return;
+    if (!socket || !isConnected || !documentId) return;
 
     // Join the document room
-    currentSocket.emit(SOCKET_EVENTS.JOIN_DOCUMENT, { documentId });
+    socket.emit(SOCKET_EVENTS.JOIN_DOCUMENT, { documentId });
 
     // Server loaded the document
-    currentSocket.on(SOCKET_EVENTS.DOCUMENT_LOADED, (loadedDoc) => {
+    socket.on(SOCKET_EVENTS.DOCUMENT_LOADED, (loadedDoc) => {
       setDocument(loadedDoc);
     });
 
     // Another user changed the document content
-    currentSocket.on(SOCKET_EVENTS.DOCUMENT_UPDATE, ({ content }) => {
+    socket.on(SOCKET_EVENTS.DOCUMENT_UPDATE, ({ content }) => {
       setDocument((prev) => (prev ? { ...prev, content } : null));
     });
 
     // Document was auto-saved to DB
-    currentSocket.on(SOCKET_EVENTS.DOCUMENT_SAVED, () => {
+    socket.on(SOCKET_EVENTS.DOCUMENT_SAVED, () => {
       setIsSaving(false);
     });
 
     // Full list of currently active users
-    currentSocket.on(SOCKET_EVENTS.PRESENCE_LIST, (users) => {
+    socket.on(SOCKET_EVENTS.PRESENCE_LIST, (users) => {
       setActiveUsers(users);
     });
 
     // A user joined the document room
-    currentSocket.on(SOCKET_EVENTS.USER_JOINED, ({ userId, userName, avatar }) => {
+    socket.on(SOCKET_EVENTS.USER_JOINED, ({ userId, userName, avatar }) => {
       setActiveUsers((prev) => {
         if (prev.some((u) => u.userId === userId)) return prev;
         return [...prev, { userId, userName, avatar }];
@@ -76,7 +70,7 @@ export default function useDocument(documentId) {
     });
 
     // A user left the document room
-    currentSocket.on(SOCKET_EVENTS.USER_LEFT, ({ userId, userName }) => {
+    socket.on(SOCKET_EVENTS.USER_LEFT, ({ userId, userName }) => {
       setActiveUsers((prev) => prev.filter((u) => u.userId !== userId));
       if (userName) {
         toast(`${userName} left`, { duration: 2000, icon: '🚪' });
@@ -84,7 +78,7 @@ export default function useDocument(documentId) {
     });
 
     // Typing indicator from another user
-    currentSocket.on(SOCKET_EVENTS.USER_TYPING, ({ userId, userName, isTyping }) => {
+    socket.on(SOCKET_EVENTS.USER_TYPING, ({ userId, userName, isTyping }) => {
       setTypingUsers((prev) => {
         if (isTyping) {
           if (prev.some((u) => u.userId === userId)) return prev;
@@ -96,18 +90,16 @@ export default function useDocument(documentId) {
     });
 
     return () => {
-      if (currentSocket) {
-        currentSocket.emit(SOCKET_EVENTS.LEAVE_DOCUMENT, { documentId });
-        currentSocket.off(SOCKET_EVENTS.DOCUMENT_LOADED);
-        currentSocket.off(SOCKET_EVENTS.DOCUMENT_UPDATE);
-        currentSocket.off(SOCKET_EVENTS.DOCUMENT_SAVED);
-        currentSocket.off(SOCKET_EVENTS.PRESENCE_LIST);
-        currentSocket.off(SOCKET_EVENTS.USER_JOINED);
-        currentSocket.off(SOCKET_EVENTS.USER_LEFT);
-        currentSocket.off(SOCKET_EVENTS.USER_TYPING);
-      }
+      socket.emit(SOCKET_EVENTS.LEAVE_DOCUMENT, { documentId });
+      socket.off(SOCKET_EVENTS.DOCUMENT_LOADED);
+      socket.off(SOCKET_EVENTS.DOCUMENT_UPDATE);
+      socket.off(SOCKET_EVENTS.DOCUMENT_SAVED);
+      socket.off(SOCKET_EVENTS.PRESENCE_LIST);
+      socket.off(SOCKET_EVENTS.USER_JOINED);
+      socket.off(SOCKET_EVENTS.USER_LEFT);
+      socket.off(SOCKET_EVENTS.USER_TYPING);
     };
-  }, [documentId, isConnected]);
+  }, [documentId, isConnected, socket]);
 
   const autosaveTimeoutRef = useRef(null);
 
@@ -116,18 +108,18 @@ export default function useDocument(documentId) {
     setDocument((prev) => (prev ? { ...prev, content: newContent } : null));
     setIsSaving(true);
 
-    if (socketRef.current && isConnected) {
-      socketRef.current.emit(SOCKET_EVENTS.DOCUMENT_CHANGE, {
+    if (socket && isConnected) {
+      socket.emit(SOCKET_EVENTS.DOCUMENT_CHANGE, {
         documentId,
         content: newContent,
       });
 
       // Typing indicator: send "typing" then auto-stop after 1.5s
-      socketRef.current.emit(SOCKET_EVENTS.TYPING, { documentId, isTyping: true });
+      socket.emit(SOCKET_EVENTS.TYPING, { documentId, isTyping: true });
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = setTimeout(() => {
-        if (socketRef.current && isConnected) {
-          socketRef.current.emit(SOCKET_EVENTS.TYPING, { documentId, isTyping: false });
+        if (socket && isConnected) {
+          socket.emit(SOCKET_EVENTS.TYPING, { documentId, isTyping: false });
         }
       }, 1500);
     } else {
@@ -143,7 +135,7 @@ export default function useDocument(documentId) {
         }
       }, 2000);
     }
-  }, [documentId, isConnected]);
+  }, [documentId, isConnected, socket]);
 
   // ─── Debounced title update ────────────────────────────
   const updateTitleTimeoutRef = useRef(null);
@@ -174,8 +166,8 @@ export default function useDocument(documentId) {
   const saveDocument = useCallback(async () => {
     if (!document) return;
     setIsSaving(true);
-    if (socketRef.current && isConnected) {
-      socketRef.current.emit(SOCKET_EVENTS.SAVE_DOCUMENT, {
+    if (socket && isConnected) {
+      socket.emit(SOCKET_EVENTS.SAVE_DOCUMENT, {
         documentId,
         content: document.content,
       });
@@ -191,7 +183,7 @@ export default function useDocument(documentId) {
         setIsSaving(false);
       }
     }
-  }, [documentId, isConnected, document]);
+  }, [documentId, isConnected, document, socket]);
 
   return {
     document,
